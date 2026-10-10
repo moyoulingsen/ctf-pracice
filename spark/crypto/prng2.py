@@ -1,0 +1,56 @@
+from Crypto.Util.number import *
+import uuid
+
+flag = "flag{??????????}"
+plaintext_1 = bytes_to_long(flag[:len(flag)//2].encode())
+plaintext_2 = bytes_to_long(flag[len(flag)//2:].encode())
+
+length_1 = plaintext_1.bit_length()
+length_2 = plaintext_2.bit_length()
+
+a_1 = getPrime(length_1)
+b_1 = getPrime(length_1)
+n_1 = getPrime(length_1+1)
+
+seed_1 = plaintext_1
+output_1 = []
+for i in range(10):
+    seed_1 = (a_1*seed_1+b_1)%n_1
+    output_1.append(seed_1)
+
+
+a_2 = getPrime(length_2)
+b_2 = getPrime(length_2)
+n_2 = getPrime(length_2+1)
+
+seed_2 = plaintext_2
+output_2 = []
+for i in range(10):
+    seed_2 = (a_2*seed_2+b_2)%n_2
+    if i % 2 == 1:
+        '''别看错了，这里明确说的是隔着一个输出'''
+        output_2.append(seed_2)
+
+
+print("n1 = ",n_1)
+print("output1 = ",output_1)
+print("n2 = ",n_2)
+print("output2 = ",output_2)
+
+
+n1 =  345134223622032783079861891603548682508177145829327
+output1 =  [330839794034202427207472630971095027706262016066515, 207117270962865762741279284229711316037274680157594, 321630619337144842590729155049041930254500778494595, 279018642904636806170692019605454218172298842459688, 73257666380505240523342216196488730390068257083494, 262605003574917963420333205887758959323129590898843, 297883743928194730326112948575646978278780812547237, 12563050321595805393555913504558906099715995945278, 210594787958272414685984084073600453669550611155703, 135043240658510317768913877228497338995616361401792]
+n2 =  252359333929140944117674864740305534893587814289093
+output2 =  [30879929814266350443344267861670172844492662456100, 36133300745084951798505947884374329171271529323031, 142262191898417995263001965439693985220619265860585, 179839309205906046323512790761178931429223389413577, 244876553270100063362680494485113603921886811448769]
+
+a1 = (output1[2] - output1[1]) * inverse(output1[1] - output1[0], n1) % n1
+b1 = (output1[1] - a1 * output1[0]) % n1
+plaintext_1 = (output1[0] - b1) * inverse(a1, n1) % n1
+
+y0, y1, y2 = output2[0], output2[1], output2[2]
+A = (y2 - y1) * inverse(y1 - y0, n2) % n2
+B = (y1 - A * y0) % n2
+plaintext_2 = (y0 - B) * inverse(A, n2) % n2
+
+flag = long_to_bytes(plaintext_1) + long_to_bytes(plaintext_2)
+print(flag.decode())
